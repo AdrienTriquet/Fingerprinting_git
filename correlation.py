@@ -2,59 +2,31 @@ import scipy.stats
 import base64
 from binascii import hexlify
 
-### copier-coller l'ensemble de la fingerprint précedemment obtenue
-f_1 = b'tLS0tLS0tLS0tLS0tLS0tLS0tLW0tLW1tbW0tbS1tbW1tbazs7Kys7OzsrKysrKysrKxsrKxsrGysrKysrKysrOysrKysrKysrKysrKysrKysrGysbKxsrGwsbGxsbGytLW1tra2tra1tLS0tLS0tLOzs7OzsrKysrKysrOzs7OQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCPj42NjIuMjYyMi4uLi4uLi4uLi4uLi4uLi4yMjIyMjIuMjIyMjIyMjIyMjIuMjIyMi4uLi4uLi4qLi4uKi4yNjo6PkJCQkI+Pj4+PkJCPj4+Pj4+Pj4+Oj4+Pj4+Pj4KCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoODgoKCgoKBgoGCfn99fH5+fX18fHx8fHx8fHx8fHx7fHx8fHx8fHx9fHx9fXx8fHx8fH18fHx8fHx8fHx8e3x8e3x8fHt8fX5/f4CBgYGBgYCBgYGBgYGBgYGBgYCAgICAgICBgYGB'
+def f_correlation(fingerprint_base, fingerprint_compar):
+    ### passage de la base 64 à de l'hexadecimale
+    decod1 = hexlify(base64.b64decode(fingerprint_base))
+    decod2 = hexlify(base64.b64decode(fingerprint_compar))
 
+    ### Mise sous forme de string utilisable par la suite
+    decod1_str = str(decod1)
+    decod2_str = str(decod2)
 
-    #autre fond
-    #b'q6ysq6ysq6ysq6urq6urq6urqqqrq62vr7CwsbKzs7S0s7OzsrKysrKzsrK0tbS0tLKwsLCvsLCxsbK0s7OxsbCwsbGys7S1tbW0tLKxsLGysrOzs7W1tbS0srCwr7CytLS0tLOxr6+vrq2srKurqqqrq6urq6urq6usra2urquIiIiIiIiIiIiIiIiIiIiIiIiIiIiKi4yNjo6Oj5CRkZGRkZGQkI+Pj4+Pj5GRkZGRkI6Njo2NjY2NjpCQj46OjY2Ojo+PkJGRkZGQj4+Oj4+Pj4+PkZGSkZCQjo6NjY6QkJCRkI+NjY2LioqJiIiIiIiIiIiIiImJiImKiouKiHp7e3p6enp6enp6enp6enl6enp6e3x+f4CAgYGBgoKDg4ODg4OCgoGBgYGBg4OEg4OCgICAf35/fn+AgYGBgICAgICAgIGCg4ODg4KCgYCBgYCBgYGCg4SEg4KBgH9/gIKDg4OCgX9/f319fHt6enp6enp6enp6ent6e3x8fn17'
+    ### Les 2 fingerprint doivent avoir la même taille, toutes les variables utilisées sont donc de même taille n ici
+    n = len(decod1)
 
-#C0227_3
-#b'q6yrq6urq6urq6urq6urq6uqqqqqq62ur7CwsbGztLS0tLOzs7KysrKzs7O0tbS0s7Kvr7CwsLCxsbKzs7KysbCwsbGys7S1tbW0s7KysLGysrOzs7W1tbS0srCwr7Gys7Ozs7Oyr6+vrq2tq6qrq6urq6usq6usrKusra2urauIiYmIiIiIiImIiIiIiIiIiIiIiIiKjI2Ojo6Oj4+RkZGRkZCQkI+Pj4+Pj5GRkZGRj46Njo2NjY2Njo+Pj46OjY6Ojo6PkZGRkZGQj4+Ojo+Pj46PkJGSkZCQjo6NjY6PkJCQkI+MjYyKioqJiIiHiIiIiIiIiImJiImKiouKiHp6enp6enp6e3p6enl6enl6eXp6e3x+f4CAgYGBgYODg4SDg4OCgoGBgYGBg4OEg4OCgH+Afn5+fn+AgYGBgYCAgICAgIGCg4ODg4KCgYGBgYGBgYGCg4SEg4KBgH9/gIKCg4OCgn9/f358fXt7e3p6ent6e3t6e3t7e3x9fn17'
+    ### On enleve les indicateurs au début à la fin pour n'utiliser que le contenu
+    decod1_str_crop = decod1_str[2:n - 1]
+    decod2_str_crop = decod2_str[2:n - 1]
 
-    #b'RERERURERERERUVGRUVFRERERERDQ0NDQkJCQkJBQD9APz8/Pz8/Pj4/Pz4/Pj49PTw9PT0+PT0+Pj4+Pj4+Pj8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8/Pz8+Pz8/P0BAQD8/Pz8/QEBAQEFBQUBBQEFAQUJCQkNDQ0NEREREREQ2NjY2NjY2NjY2Njc2NjY2NjY1NTU1NTQ0NDQ0MzMyMTExMTEwMDAwMDExMTAwMC8vLy8vLy8vLzAwMDAwMDAwMDAwMDAxMTExMTExMTExMTExMTExMDEwMDAwMDExMTExMTExMTExMTIyMjIyMjIyMjIzMzM0NDQ0NTU1NTU2NktLS0tKSkpKSktLTEtMTExLS0xLSktKSkpKS0tLS0pKS0tLSktLS0pKS0tKS0tLSktKSkpKS0pKS0tLS0tLS0tMTEtLS0tLTExMTExMTEtMTEtKS0tKS0tLSktKS0pKSkpJSUlKSkpKSkpKSkpJSUlJSUpKSkpLSkpLS0tLS0tL'
+    ### Creation des listes finales à comparer
+    list1 = []
+    list2 = []
 
+    ### On remplie les liste de n-3 caractères car on a enlevé précedement les indicateurs
+    for i in range(n - 3):
+        ### On rempli les 2 listes de valeur décimales utilisables par la fonction scipy
+        list1.append((int(decod1_str_crop[i], 16)))
+        list2.append((int(decod2_str_crop[i], 16)))
 
-
-f_2 = b'q6yrq6urq6yrq6urq6urqqurqqqrq62vr7CwsbGys7S0s7Ozs7KysrKys7O0tbS0s7Kwr7Cvr7CwsbK0s7OysLCwsLGys7S1tbW0s7OysbKysrOztLW1trW0s7Gwr7Cxs7OztLOyr6+vrqytq6urq6qrq6urq6usrKysra6vrqyIiIiIiIiIiIiIiIiIiIiIiIiIiIiKjI2Ojo6Oj4+RkJGRkZCQkI+Pj4+Pj5GRkZGRj46Njo2NjY2NjpCPj4+Ojo2Ojo+PkZGRkZGQj4+Oj4+Pj4+PkZGSkZCQjo6NjY6QkJCQkI+NjYyLioqIiIiIiIiIiIiIiIiJiImKi4uKiXp6enp6enp7enp6enp6enl5enp6e3x+f4CAgICBgoKDg4ODg4OCgoGBgYGBg4SEg4OCgH+Afn5+fn+AgYGBgYCAgICAgIGCg4ODg4KBgYCBgYCBgIGCg4SEg4KAgH9/gIKCg4OCgX9/f318fHt6enp6enp6enp6ent6e3x8fX17'
-
-
-    #C0227
-
-
-    #C0227_4
-    #b'ERESERISERISEhISERISERISERISEhISERIREA8PDw8PDg8uLi4uLi4vLi4uLCspJSUkIiIhHx4dGxoaGBgYFxcWFRQTEhEQEBAQEBESERIRERERDxAQEBESERMTEhsbGhYXFxcXGyUlMDk6QEBARERERUVFQTo5OTo5Ozs8NDEPDw8PDw8PDw8PDw8PDw8ODw8PDw8PDw8PDw4NDAwLCwsLCwsMCwsLCwoKCgoKCgwNDg8QEBEREBAQEBEREhMUFBMTERAPDg0NDg4PERESExMTFBQWFxcYGxsdHx8fJycmJSUlJSUpMDA4QEBISUlNT09PUE9LRENCQ0JDREQ8OBISEhISEhISEhISEhISEhISEhISExMTExISERAPDw4ODg4OGx0dHx8fIiQkKCoqKiorLCwtLSwtLCssLS0uLy8vLy4tLCwrKyopKigpKSgoJyYlJSQjIyIiIyEiIiAlJSIeHh4dHR8qKjhERE1NTU9OTk9OTktFRUVHR0lKS0VD'
-
-
-    #C0227_1
-    #b'DAwMDAwMDAwNDA0NDQ0NDQ0NDA0NDQ0NDQ0NDQ0NDA0NDAwzNDQzMzMzMjIyMDAuKSkoJSUiICAeGRgXExERDg4ODAwMDAwMCwsLCwsLCw0NDQwMDQwMDAwMDQwMDB8fHBcXFxgYIC4uPkpKUlRUWVpaW1tbWFBQUVNTWFxcUUsHBwcHBwcHBwcHBwcHCAgHCAgHCAgICAgICAgICAgICAgICAgICAgICAgHBwgHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcHBwcICQkLDQ0QEhIUFhYYGxsdHx8fLi4sKSkqKysxPDxIU1NeYGBlaWlqampnX19gYmJmampcVgoKCgoKCgoKCgoKCgoLCwoLCwoLCwsLCwsLCwsLCwsLCwsLHB4eICEhIyYmKi4uLi4uLy4uLy8vLy4wLy8wMC8wMC8wMDAvLy4tLSwrKyoqKikoKCcmJiQiIiEfHx4qKiUfHx4cHCQ0NEhXV19fX2FhYWJhYV5WVldaWl5hYVhU'
-
-
-
-### passage de la base 64 à de l'hexadecimale
-decod1 = hexlify(base64.b64decode(f_1))
-decod2 = hexlify(base64.b64decode(f_2))
-
-### Mise sous forme de string utilisable par la suite
-decod1_str = str(decod1)
-decod2_str = str(decod2)
-
-### Les 2 fingerprint doivent avoir la même taille, toutes les variables utilisées sont donc de même taille n ici
-n = len(decod1)
-
-### On enleve les indicateurs au début à la fin pour n'utiliser que le contenu
-decod1_str_crop = decod1_str[2:n-1]
-decod2_str_crop = decod2_str[2:n-1]
-
-### Creation des listes finales à comparer
-list1 = []
-list2 = []
-
-### On remplie les liste de n-3 caractères car on a enlevé précedement les indicateurs
-for i in range(n-3):
-    ### On rempli les 2 listes de valeur décimales utilisables par la fonction scipy
-    list1.append((int(decod1_str_crop[i], 16)))
-    list2.append((int(decod2_str_crop[i], 16)))
-
-### on vient enfin comparer nos deux array
-print(scipy.stats.pearsonr(list1, list2))
+    ### on vient enfin comparer nos deux array
+    return scipy.stats.pearsonr(list1, list2)
