@@ -1,5 +1,5 @@
 from ravif import ravif
-from recallage import recallage
+from recalage import recalage
 import cv2
 from correlation import f_correlation
 
@@ -38,21 +38,37 @@ def global_fonction(video_base, video_compar):
     path_frame_base = frame_out_of_video(video_base)
     path_frame_compar = frame_out_of_video(video_compar)
 
-    recal = recallage(path_frame_base, path_frame_compar)
+    recal = recalage(path_frame_base, path_frame_compar)
+    print("recallage =")
+    print(recal)
     angleDeg = recal[0]
     scaleFactor = recal[1]
     X = recal[2]
     Y = recal[3]
 
+    #if X != 0:
+        #X = (1920 / 2) + X
+
+    #if Y != 0:
+        #Y = (1080 / 2) + Y
+    # 1920*1080 est la taille d'image en entrée
+    # Dacallage ne doit pas être de plus de la moitié de l'image ce qui est le cas avec notre dataset
+    #X = int((1920 / 2 + X) * 256 / 1920)
+    #Y = int((1080 / 2 + Y) * 256 / 1080)
+
+    X = max(X, -X) * 256 / 1920
+    Y = max(Y, -Y) * 256 / 1080
+    
+
     # S'il y a une rotation, on test la correlation avec et sans rotation
     if angleDeg != 0:
 
-        fingerprint_base = ravif(video_base, 0, 0)
+        fingerprint_base = ravif(video_base, 128, 128)
         print('on its way : 1/5')
         fingerprint_compar = ravif(video_compar, X, Y)
         print('on its way : 2/5')
 
-        correl = f_correlation(fingerprint_base, fingerprint_compar)
+        correlation = f_correlation(fingerprint_base, fingerprint_compar)[0]
         print('on its way : 3/5')
 
         fingerprint_compar = ravif(cv2.rotate(video_compar, angleDeg), X, Y)
@@ -60,24 +76,34 @@ def global_fonction(video_base, video_compar):
 
         new_correl = f_correlation(fingerprint_base, fingerprint_compar)
 
-        if new_correl[0] > correl[0]:
-            correl = new_correl
+        if new_correl[0] > correlation:
+            correlation = new_correl[0]
 
     else:
-        fingerprint_base = ravif(video_base, 0, 0)
-        print('on its way : 1/3')
-        fingerprint_compar = ravif(video_compar, X, Y)
-        print('on its way : 2/3')
+        fingerprint_base = ravif(video_base, 128, 128)
+        print('on its way : 1/4')
+        fingerprint_compar_translate = ravif(video_compar, X, Y)
+        print('on its way : 2/4')
+        fingerprint_compar_center = ravif(video_compar, 128, 128)
+        print('on its way : 3/4')
 
-        correl = f_correlation(fingerprint_base, fingerprint_compar)
+        correl_translate = f_correlation(fingerprint_base, fingerprint_compar_translate)
+        print("correl_translate")
+        print(correl_translate)
 
-    if correl[0] < 0.9:
-        return 'Done : Pas de correlation forte : ' + str(correl[0])
+        correl_center = f_correlation(fingerprint_base, fingerprint_compar_center)
+        print("correl_center")
+        print(correl_center)
 
-    return 'Done : Correlation forte : ' + str(correl[0])
+        correlation = max(correl_translate[0], correl_center[0])
+
+    if correlation < 0.8:
+        return 'Done : Pas de correlation forte : ' + str(correlation)
+
+    return 'Done : Correlation forte : ' + str(correlation)
 
 
-video_base = "video_travail/A.mp4"
-video_compar = "video_travail/B.mp4"
+video_base = "video_travail/droit_noir.mp4"
+video_compar = "video_travail/envers_noir.mp4"
 
 print(global_fonction(video_base, video_compar))

@@ -11,7 +11,6 @@ blocks = 1 << bits
 mbunit = 1048576
 
 def ravif(video, X, Y):
-    print(video)
     cap = cv2.VideoCapture(video)
 
     frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -27,7 +26,7 @@ def ravif(video, X, Y):
         ret, frame = cap.read()
         small = cv2.resize(frame, (256, 256))
         small = cv2.blur(small, (16, 16))
-        px = small[128 + X, 128 + Y]
+        px = small[X, Y]
         fp_R = fp_R + ("%0.2x" % px[0])
         fp_G = fp_G + ("%0.2x" % px[1])
         fp_B = fp_B + ("%0.2x" % px[2])
